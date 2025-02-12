@@ -1,78 +1,50 @@
-CoreTrust-Demo-v1
+# CoreTrust Demo
 
-Features
-🎯 Dashboard Overview
-Real-time metrics tracking
-Model performance monitoring
-Compliance status indicators
-Risk alerts and notifications
+A comprehensive AI governance and risk management platform designed to help organizations understand and mitigate AI-related risks. Built with Next.js, TypeScript, and shadcn/ui.
 
-🔍 AI Tools Explorer
-Curated marketplace of verified AI tools
-Risk assessment for each tool
-Compliance scores and certifications
-Detailed performance metrics
-Usage trends and insights
+## Overview
 
-📋 PolicySense™
-Global AI regulation tracking
-Real-time policy updates
-Impact analysis
-Compliance roadmap
-Progress tracking
+CoreTrust provides four main tools:
 
-🎯 Risk Radar™
-Predictive risk assessment
-Case precedent analysis
-Actionable recommendations
-Risk trend monitoring
-Compliance forecasting
+### 1. Dashboard
+- Real-time model performance metrics
+- Compliance status tracking
+- Risk alerts and notifications
+- System health monitoring
 
-Tech Stack
-Frontend Framework: Next.js 14
-Language: TypeScript
-Styling: Tailwind CSS
-UI Components: shadcn/ui
-Icons: Lucide React
-State Management: React Hooks
-Charts: Recharts
+### 2. AI Tools Explorer
+- Curated marketplace of vetted AI tools
+- Risk assessment scores
+- Compliance certifications
+- Performance metrics
 
-Prerequisites
+### 3. PolicySense™
+- Global AI regulation tracking
+- Real-time policy updates
+- Impact assessment
+- Implementation progress tracking
 
-Node.js 18.0 or later
-npm or yarn
+### 4. Risk Radar™
+- Predictive risk assessment
+- Case precedent analysis
+- Actionable recommendations
+- Risk trend monitoring
 
-Installation
-Clone the repository:
-git clone https://github.com/yourusername/coretrust-demo.git
+## Getting Started
+
+### Prerequisites
+- Node.js (v18 or newer)
+- npm or yarn
+
+### Installation
+```bash
+git clone https://github.com/your-username/coretrust-demo.git
+
 cd coretrust-demo
 
-Install dependencies:
 npm install
 
-Run the development server:
 npm run dev
+```
 
 Open http://localhost:3000 to view the platform
-
-Project Structure
-Copycoretrust-demo/
-├── app/                    # Next.js app directory
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── components/            # React components
-│   ├── CoreTrustDashboard.tsx
-│   ├── DashboardTab.tsx
-│   ├── ExploreAIToolsTab.tsx
-│   ├── PolicySenseTab.tsx
-│   ├── RiskRadarTab.tsx
-│   └── ui/               # UI components
-├── lib/                  # Utilities
-│   └── utils.ts
-├── public/              # Static assets
-└── types/              # TypeScript types
-Contributing
-
-Contact
-Project Link: https://github.com/roksanablz/coretrust-demo
