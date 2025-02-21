@@ -1,283 +1,187 @@
-'use client';
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Input } from "@/components/ui/input";
-import {
-  AlertTriangle,
-  Scale,
-  Shield,
-  Award,
-  BookOpen,
-  BarChart2,
-  FileText,
-  Gavel,
-  Search,
-  TrendingUp,
-  History,
-  CheckCircle
-} from 'lucide-react';
+import { AlertTriangle, History, Shield, Scale, CheckCircle, Bot } from 'lucide-react';
 
-interface RiskFactor {
-  category: string;
-  score: number;
-  trend: 'increasing' | 'stable' | 'decreasing';
-  precedents: number;
-  description: string;
-  impact: string;
-  recommendations: string[];
-  recentCases: {
-    title: string;
-    date: string;
-    outcome: string;
-    relevance: number;
-  }[];
-}
-
-const riskFactors: RiskFactor[] = [
-  {
-    category: "Data Privacy",
-    score: 78,
-    trend: "increasing",
-    precedents: 12,
-    description: "Rising concerns over personal data handling and consent mechanisms",
-    impact: "Potential regulatory fines and reputation damage",
-    recommendations: [
-      "Implement enhanced data anonymization protocols",
-      "Strengthen user consent management",
-      "Regular privacy impact assessments",
-      "Update data retention policies"
-    ],
-    recentCases: [
+const RiskRadar = () => {
+  // Sample data for selected and deployed AI tools
+  const [deployedTools] = useState({
+    selectedTools: [
       {
-        title: "In re AI Corp Data Breach",
-        date: "2024-01-15",
-        outcome: "$5M settlement",
-        relevance: 85
+        id: 1,
+        name: 'ResearchGPT',
+        category: 'Research Assistant',
+        vendor: 'AI Research Labs',
+        deploymentDate: '2024-02',
+        casePrecedents: [
+          {
+            title: 'Data Privacy Implementation',
+            company: 'Academia Research',
+            date: '2024-01',
+            description: 'Enhanced privacy controls for research data handling',
+            impact: 'Strengthened data protection for 250K+ users',
+            resolution: 'Implemented advanced encryption and access controls'
+          }
+        ],
+        identifiedRisks: [
+          'Data Privacy Management',
+          'Output Reliability Assurance',
+          'Bias Control Implementation',
+          'Academic Integrity Verification'
+        ],
+        mitigationStatus: 'Resolved',
+        riskLevel: 'Low'
       },
       {
-        title: "State v. TechAI Solutions",
-        date: "2023-12-10",
-        outcome: "Consent decree",
-        relevance: 75
-      }
-    ]
-  },
-  {
-    category: "Model Bias",
-    score: 65,
-    trend: "stable",
-    precedents: 8,
-    description: "Algorithmic bias affecting protected classes",
-    impact: "Discrimination claims and regulatory scrutiny",
-    recommendations: [
-      "Implement comprehensive bias testing",
-      "Diversify training data sources",
-      "Regular fairness audits",
-      "Document bias mitigation efforts"
-    ],
-    recentCases: [
+        id: 2,
+        name: 'CodeCopilot Pro',
+        category: 'Development Assistant',
+        vendor: 'Code Solutions Inc',
+        deploymentDate: '2024-01',
+        casePrecedents: [
+          {
+            title: 'Security Vulnerability Detection',
+            company: 'TechCorp',
+            date: '2024-02',
+            description: 'Identified potential security risks in generated code',
+            impact: 'Affected code quality for enterprise clients',
+            resolution: 'Enhanced security scanning and validation protocols'
+          }
+        ],
+        identifiedRisks: [
+          'Security Risk Assessment',
+          'Code Quality Assurance',
+          'License Compliance Verification',
+          'Resource Optimization'
+        ],
+        mitigationStatus: 'In Progress',
+        riskLevel: 'Medium'
+      },
       {
-        title: "Smith v. AI Hiring Systems",
-        date: "2024-02-01",
-        outcome: "Pending",
-        relevance: 90
+        id: 3,
+        name: 'DataSage',
+        category: 'Data Analysis',
+        vendor: 'Data Analytics Corp',
+        deploymentDate: '2024-02',
+        casePrecedents: [
+          {
+            title: 'Analysis Accuracy Improvement',
+            company: 'DataCorp',
+            date: '2024-01',
+            description: 'Enhanced data analysis accuracy and validation',
+            impact: 'Improved analysis reliability for 180K+ users',
+            resolution: 'Implemented advanced validation algorithms'
+          }
+        ],
+        identifiedRisks: [
+          'Data Protection Standards',
+          'Analysis Accuracy Verification',
+          'Resource Usage Optimization',
+          'Scalability Management'
+        ],
+        mitigationStatus: 'Monitored',
+        riskLevel: 'Medium'
       }
     ]
-  },
-  {
-    category: "AI Safety",
-    score: 72,
-    trend: "increasing",
-    precedents: 5,
-    description: "Concerns over AI system reliability and safety measures",
-    impact: "Safety incidents and liability exposure",
-    recommendations: [
-      "Implement robust testing protocols",
-      "Enhance monitoring systems",
-      "Establish clear safety guidelines",
-      "Regular safety audits"
-    ],
-    recentCases: [
-      {
-        title: "AutoAI Safety Investigation",
-        date: "2024-01-20",
-        outcome: "New safety protocols mandated",
-        relevance: 80
-      }
-    ]
-  }
-];
+  });
 
-const RiskRadarTab = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-red-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-green-600";
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'increasing':
-        return <TrendingUp className="h-4 w-4 text-red-500" />;
-      case 'decreasing':
-        return <TrendingUp className="h-4 w-4 text-green-500 transform rotate-180" />;
+  const getRiskLevelColor = (level) => {
+    switch (level.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
       default:
-        return <TrendingUp className="h-4 w-4 text-yellow-500 transform rotate-90" />;
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const filteredRisks = riskFactors.filter(risk =>
-    risk.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    risk.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getMitigationStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'resolved':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'in progress':
+        return <History className="w-4 h-4 text-yellow-600" />;
+      case 'monitored':
+        return <Shield className="w-4 h-4 text-blue-600" />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Risk Radar™</h2>
-          <p className="text-gray-500">Predictive risk assessment based on case precedents</p>
-        </div>
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="text"
-            placeholder="Search risks..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Scale className="h-8 w-8 text-blue-500" />
-              <div>
-                <p className="text-sm text-gray-500">Overall Risk Score</p>
-                <p className="text-2xl font-bold">72/100</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Gavel className="h-8 w-8 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-500">Active Cases</p>
-                <p className="text-2xl font-bold">25</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Shield className="h-8 w-8 text-green-500" />
-              <div>
-                <p className="text-sm text-gray-500">Risk Coverage</p>
-                <p className="text-2xl font-bold">85%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-6">
-        {filteredRisks.map((risk, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className={`h-5 w-5 ${getScoreColor(risk.score)}`} />
-                  {risk.category}
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500">{risk.precedents} precedents</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getTrendIcon(risk.trend)}
-                    <span className="text-sm">{risk.trend}</span>
-                  </div>
-                  <div className={`text-lg font-bold ${getScoreColor(risk.score)}`}>
-                    {risk.score}/100
-                  </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
+    <Card className="w-full max-w-6xl">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+          <Bot className="w-6 h-6 text-blue-600" />
+          RiskRadar™ - Deployed AI Tools Analysis
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {deployedTools.selectedTools.map((tool) => (
+            <div key={tool.id} className="border rounded-lg overflow-hidden">
+              <div className="bg-gray-50 p-4">
+                <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      Risk Analysis
-                    </h3>
-                    <p className="mt-1 text-gray-600">{risk.description}</p>
-                    <p className="mt-2 text-sm font-medium">Impact: {risk.impact}</p>
+                    <h2 className="text-xl font-semibold">{tool.name}</h2>
+                    <p className="text-gray-600">{tool.category} • {tool.vendor}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Recommended Actions
-                    </h3>
-                    <ul className="mt-1 space-y-1">
-                      {risk.recommendations.map((rec, idx) => (
-                        <li key={idx} className="text-sm text-gray-600 flex items-center gap-2">
-                          <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      {getMitigationStatusIcon(tool.mitigationStatus)}
+                      <span className="text-sm">{tool.mitigationStatus}</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm ${getRiskLevelColor(tool.riskLevel)}`}>
+                      {tool.riskLevel} Risk
+                    </span>
                   </div>
                 </div>
+              </div>
+
+              <div className="p-4 space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
-                    <History className="h-4 w-4" />
-                    Recent Case Precedents
+                  <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
+                    <History className="w-5 h-5 text-blue-600" />
+                    Case Precedents
                   </h3>
                   <div className="space-y-3">
-                    {risk.recentCases.map((caseItem, idx) => (
-                      <div key={idx} className="bg-gray-50 p-3 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium text-sm">{caseItem.title}</h4>
-                            <p className="text-sm text-gray-500">{caseItem.date}</p>
-                          </div>
-                          <span className="text-sm font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                            {caseItem.outcome}
-                          </span>
+                    {tool.casePrecedents.map((precedent, idx) => (
+                      <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">{precedent.title}</h4>
+                          <span className="text-sm text-gray-500">{precedent.date}</span>
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className="text-sm text-gray-500">Relevance:</span>
-                          <div className="flex-1 h-1.5 bg-gray-200 rounded-full">
-                            <div
-                              className="h-full bg-blue-500 rounded-full"
-                              style={{ width: `${caseItem.relevance}%` }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium">{caseItem.relevance}%</span>
-                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{precedent.company}</p>
+                        <p className="text-sm text-gray-600 mb-1">{precedent.description}</p>
+                        <p className="text-sm text-red-600 mb-1">Impact: {precedent.impact}</p>
+                        <p className="text-sm text-green-600">Resolution: {precedent.resolution}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    Identified Risks
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {tool.identifiedRisks.map((risk, idx) => (
+                      <div key={idx} className="bg-red-50 rounded-lg p-2">
+                        <p className="text-sm text-gray-800">{risk}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default RiskRadarTab;
+export default RiskRadar;

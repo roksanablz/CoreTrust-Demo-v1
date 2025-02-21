@@ -1,4 +1,4 @@
-// File: /workspaces/CoreTrust-Demo-v2/app/page.tsx
+// File: /workspaces/CoreTrust-Demo-v1/app/page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
