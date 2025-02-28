@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Eye, Scale, Shield, Lock, Bot, Star, Users, AlertTriangle, FileText } from 'lucide-react';
+import { Eye, Scale, Shield, Lock, Bot, Star, Users, AlertTriangle, FileText, Info } from 'lucide-react';
 
 type RiskLevel = 'low' | 'medium' | 'high';
 type ModelType = 'gpt4' | 'claude2' | 'llama2';
@@ -45,6 +45,14 @@ interface MarketplaceAgent {
   description: string;
   weeklyTrend: string;
 }
+
+// Metric descriptions for info tooltips
+const metricDescriptions = {
+  transparency: "Transparency Score measures how well the model's decision-making process can be explained and understood by humans. Higher scores indicate more explainable AI systems.",
+  bias: "Bias Level indicates the degree to which the model exhibits unfair or preferential treatment toward certain groups. Lower percentages are better, showing less bias.",
+  robustness: "Robustness Score measures the model's ability to maintain performance when facing unexpected inputs or adversarial attacks. Higher scores indicate more robust systems.",
+  resilience: "Resilience Score represents the model's capability to recover from failures and maintain operation under varied conditions. Higher scores indicate greater reliability."
+};
 
 const modelMetrics: Record<ModelType, ModelMetrics> = {
   gpt4: {
@@ -145,19 +153,61 @@ const getRiskLevelColor = (level: RiskLevel): string => {
   return colors[level];
 };
 
+// Info Tooltip component
+const InfoTooltip = ({ 
+  description, 
+  isOpen, 
+  onClick 
+}: { 
+  description: string, 
+  isOpen: boolean, 
+  onClick: () => void 
+}) => (
+  <div className="relative">
+    <button 
+      onClick={onClick}
+      className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+    >
+      <Info className="h-4 w-4" />
+    </button>
+    
+    {isOpen && (
+      <div className="absolute z-10 w-64 p-3 text-sm bg-white border rounded-md shadow-lg top-6 left-0">
+        <p>{description}</p>
+      </div>
+    )}
+  </div>
+);
+
 const DashboardTab = () => {
   const [selectedModel] = useState<ModelType>('gpt4');
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
+
+  const toggleTooltip = (metric: string) => {
+    if (openTooltip === metric) {
+      setOpenTooltip(null);
+    } else {
+      setOpenTooltip(metric);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-center">
                 <Eye className="h-8 w-8 text-blue-500 mr-2" />
                 <div>
-                  <p className="text-sm font-medium">Transparency Score</p>
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium">Transparency Score</p>
+                    <InfoTooltip 
+                      description={metricDescriptions.transparency}
+                      isOpen={openTooltip === 'transparency'}
+                      onClick={() => toggleTooltip('transparency')}
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold">{modelMetrics[selectedModel].transparency}%</h3>
                 </div>
               </div>
@@ -167,11 +217,18 @@ const DashboardTab = () => {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-center">
                 <Scale className="h-8 w-8 text-yellow-500 mr-2" />
                 <div>
-                  <p className="text-sm font-medium">Bias Level</p>
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium">Bias Level</p>
+                    <InfoTooltip 
+                      description={metricDescriptions.bias}
+                      isOpen={openTooltip === 'bias'}
+                      onClick={() => toggleTooltip('bias')}
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold">{modelMetrics[selectedModel].bias}%</h3>
                 </div>
               </div>
@@ -181,11 +238,18 @@ const DashboardTab = () => {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-center">
                 <Shield className="h-8 w-8 text-green-500 mr-2" />
                 <div>
-                  <p className="text-sm font-medium">Robustness Score</p>
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium">Robustness Score</p>
+                    <InfoTooltip 
+                      description={metricDescriptions.robustness}
+                      isOpen={openTooltip === 'robustness'}
+                      onClick={() => toggleTooltip('robustness')}
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold">{modelMetrics[selectedModel].robustness}%</h3>
                 </div>
               </div>
@@ -195,11 +259,18 @@ const DashboardTab = () => {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div className="flex items-center">
                 <Lock className="h-8 w-8 text-purple-500 mr-2" />
                 <div>
-                  <p className="text-sm font-medium">Resilience Score</p>
+                  <div className="flex items-center">
+                    <p className="text-sm font-medium">Resilience Score</p>
+                    <InfoTooltip 
+                      description={metricDescriptions.resilience}
+                      isOpen={openTooltip === 'resilience'}
+                      onClick={() => toggleTooltip('resilience')}
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold">{modelMetrics[selectedModel].resilience}%</h3>
                 </div>
               </div>

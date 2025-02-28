@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { AlertTriangle, History, Shield, Scale, CheckCircle, Bot } from 'lucide-react';
+import { AlertTriangle, History, Shield, Scale, CheckCircle, Bot, TrendingUp, TrendingDown } from 'lucide-react';
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const RiskRadar = () => {
-  // Sample data for selected and deployed AI tools
   const [deployedTools] = useState({
     selectedTools: [
       {
@@ -28,8 +28,15 @@ const RiskRadar = () => {
           'Bias Control Implementation',
           'Academic Integrity Verification'
         ],
-        mitigationStatus: 'Resolved',
-        riskLevel: 'Low'
+        mitigationStatus: 'In Progress',
+        riskLevel: 'High',
+        monthlyIncidents: [
+          { month: 'Sep', incidents: 8 },
+          { month: 'Oct', incidents: 6 },
+          { month: 'Nov', incidents: 5 },
+          { month: 'Dec', incidents: 4 },
+          { month: 'Jan', incidents: 1 }
+        ]
       },
       {
         id: 2,
@@ -53,8 +60,15 @@ const RiskRadar = () => {
           'License Compliance Verification',
           'Resource Optimization'
         ],
-        mitigationStatus: 'In Progress',
-        riskLevel: 'Medium'
+        mitigationStatus: 'Monitored',
+        riskLevel: 'Medium',
+        monthlyIncidents: [
+          { month: 'Sep', incidents: 4 },
+          { month: 'Oct', incidents: 3 },
+          { month: 'Nov', incidents: 3 },
+          { month: 'Dec', incidents: 2 },
+          { month: 'Jan', incidents: 1 }
+        ]
       },
       {
         id: 3,
@@ -78,12 +92,72 @@ const RiskRadar = () => {
           'Resource Usage Optimization',
           'Scalability Management'
         ],
-        mitigationStatus: 'Monitored',
-        riskLevel: 'Medium'
+        mitigationStatus: 'Resolved',
+        riskLevel: 'Low',
+        monthlyIncidents: [
+          { month: 'Sep', incidents: 12 },
+          { month: 'Oct', incidents: 9 },
+          { month: 'Nov', incidents: 7 },
+          { month: 'Dec', incidents: 3 },
+          { month: 'Jan', incidents: 1 }
+        ]
       }
     ]
   });
+  
+  // Track which tool is selected for detailed view
+  const [selectedToolId, setSelectedToolId] = useState(null);
+  
+  // Calculate aggregate metrics
+  const calculateAggregateData = () => {
+    const monthlyAggregates = {};
+    
+    // Initialize with all months
+    deployedTools.selectedTools[0].monthlyIncidents.forEach(({ month }) => {
+      monthlyAggregates[month] = {
+        month,
+        total: 0,
+        high: 0,
+        medium: 0,
+        low: 0
+      };
+    });
+    
+    // Aggregate by risk level
+    deployedTools.selectedTools.forEach(tool => {
+      tool.monthlyIncidents.forEach(({ month, incidents }) => {
+        monthlyAggregates[month].total += incidents;
+        switch (tool.riskLevel.toLowerCase()) {
+          case 'high':
+            monthlyAggregates[month].high += incidents;
+            break;
+          case 'medium':
+            monthlyAggregates[month].medium += incidents;
+            break;
+          case 'low':
+            monthlyAggregates[month].low += incidents;
+            break;
+        }
+      });
+    });
+    
+    return Object.values(monthlyAggregates);
+  };
 
+  const aggregateData = calculateAggregateData();
+  
+  // Calculate month-over-month change for the latest month
+  const latestMonthChange = (() => {
+    const lastMonth = aggregateData[aggregateData.length - 1];
+    const previousMonth = aggregateData[aggregateData.length - 2];
+    const percentChange = ((lastMonth.total - previousMonth.total) / previousMonth.total) * 100;
+    return {
+      value: percentChange.toFixed(1),
+      isPositive: percentChange > 0
+    };
+  })();
+
+  // Rest of the helper functions remain the same
   const getRiskLevelColor = (level) => {
     switch (level.toLowerCase()) {
       case 'high':
@@ -110,75 +184,194 @@ const RiskRadar = () => {
     }
   };
 
+  const riskDistributionData = [
+    { name: 'High Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'High').length, color: '#EF4444' },
+    { name: 'Medium Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'Medium').length, color: '#F59E0B' },
+    { name: 'Low Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'Low').length, color: '#10B981' }
+  ];
+
   return (
     <Card className="w-full max-w-6xl">
       <CardHeader>
         <CardTitle className="text-2xl font-bold flex items-center gap-2">
           <Bot className="w-6 h-6 text-blue-600" />
-          RiskRadar™ - Deployed AI Tools Analysis
+          RiskRadar
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {deployedTools.selectedTools.map((tool) => (
-            <div key={tool.id} className="border rounded-lg overflow-hidden">
-              <div className="bg-gray-50 p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-xl font-semibold">{tool.name}</h2>
-                    <p className="text-gray-600">{tool.category} • {tool.vendor}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {getMitigationStatusIcon(tool.mitigationStatus)}
-                      <span className="text-sm">{tool.mitigationStatus}</span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm ${getRiskLevelColor(tool.riskLevel)}`}>
-                      {tool.riskLevel} Risk
-                    </span>
-                  </div>
-                </div>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Risk Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={riskDistributionData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({name, value}) => `${name}: ${value}`}
+                    >
+                      {riskDistributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="p-4 space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
-                    <History className="w-5 h-5 text-blue-600" />
-                    Case Precedents
-                  </h3>
-                  <div className="space-y-3">
-                    {tool.casePrecedents.map((precedent, idx) => (
-                      <div key={idx} className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex justify-between mb-2">
-                          <h4 className="font-medium">{precedent.title}</h4>
-                          <span className="text-sm text-gray-500">{precedent.date}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-1">{precedent.company}</p>
-                        <p className="text-sm text-gray-600 mb-1">{precedent.description}</p>
-                        <p className="text-sm text-red-600 mb-1">Impact: {precedent.impact}</p>
-                        <p className="text-sm text-green-600">Resolution: {precedent.resolution}</p>
-                      </div>
-                    ))}
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>Historical Risk Trend</span>
+                <div className="flex items-center gap-2 text-sm">
+                  {latestMonthChange.isPositive ? (
+                    <TrendingUp className="w-4 h-4 text-red-600" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-green-600" />
+                  )}
+                  <span className={latestMonthChange.isPositive ? 'text-red-600' : 'text-green-600'}>
+                    {latestMonthChange.value}%
+                  </span>
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    Identified Risks
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {tool.identifiedRisks.map((risk, idx) => (
-                      <div key={idx} className="bg-red-50 rounded-lg p-2">
-                        <p className="text-sm text-gray-800">{risk}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={aggregateData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="high" 
+                      name="High Risk Incidents"
+                      stroke="#EF4444" 
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="medium" 
+                      name="Medium Risk Incidents"
+                      stroke="#F59E0B" 
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="low" 
+                      name="Low Risk Incidents"
+                      stroke="#10B981" 
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          ))}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Tool Selection Grid */}
+        <div className="mb-6">
+          <h3 className="text-lg font-medium mb-3">Tool Details</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {deployedTools.selectedTools.map((tool) => (
+              <button
+                key={tool.id}
+                onClick={() => setSelectedToolId(selectedToolId === tool.id ? null : tool.id)}
+                className={`p-3 rounded-lg border transition-colors ${
+                  selectedToolId === tool.id 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">{tool.name}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${getRiskLevelColor(tool.riskLevel)}`}>
+                    {tool.riskLevel}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">{tool.category}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Show detailed view only for selected tool */}
+        {selectedToolId && (
+          <div className="space-y-6">
+            {deployedTools.selectedTools
+              .filter(tool => tool.id === selectedToolId)
+              .map((tool) => (
+                <div key={tool.id} className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h2 className="text-xl font-semibold">{tool.name}</h2>
+                        <p className="text-gray-600">{tool.category} • {tool.vendor}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          {getMitigationStatusIcon(tool.mitigationStatus)}
+                          <span className="text-sm">{tool.mitigationStatus}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
+                        <History className="w-5 h-5 text-blue-600" />
+                        Case Precedents
+                      </h3>
+                      <div className="space-y-3">
+                        {tool.casePrecedents.map((precedent, idx) => (
+                          <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex justify-between mb-2">
+                              <h4 className="font-medium">{precedent.title}</h4>
+                              <span className="text-sm text-gray-500">{precedent.date}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-1">{precedent.company}</p>
+                            <p className="text-sm text-gray-600 mb-1">{precedent.description}</p>
+                            <p className="text-sm text-red-600 mb-1">Impact: {precedent.impact}</p>
+                            <p className="text-sm text-green-600">Resolution: {precedent.resolution}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium flex items-center gap-2 mb-3">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        Identified Risks
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {tool.identifiedRisks.map((risk, idx) => (
+                          <div key={idx} className="bg-red-50 rounded-lg p-2">
+                            <p className="text-sm text-gray-800">{risk}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
