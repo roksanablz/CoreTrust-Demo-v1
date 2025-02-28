@@ -1,10 +1,56 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AlertTriangle, History, Shield, Scale, CheckCircle, Bot, TrendingUp, TrendingDown } from 'lucide-react';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+// Define TypeScript interfaces
+interface Incident {
+  month: string;
+  incidents: number;
+}
+
+interface CasePrecedent {
+  title: string;
+  company: string;
+  date: string;
+  description: string;
+  impact: string;
+  resolution: string;
+}
+
+interface DeployedTool {
+  id: number;
+  name: string;
+  category: string;
+  vendor: string;
+  deploymentDate: string;
+  casePrecedents: CasePrecedent[];
+  identifiedRisks: string[];
+  mitigationStatus: string;
+  riskLevel: string;
+  monthlyIncidents: Incident[];
+}
+
+interface AggregateMonthData {
+  month: string;
+  total: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
+interface RiskDistributionItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
 const RiskRadar = () => {
-  const [deployedTools] = useState({
+  const [deployedTools] = useState<{
+    selectedTools: DeployedTool[];
+  }>({
     selectedTools: [
       {
         id: 1,
@@ -104,14 +150,14 @@ const RiskRadar = () => {
       }
     ]
   });
-  
+
   // Track which tool is selected for detailed view
-  const [selectedToolId, setSelectedToolId] = useState(null);
-  
+  const [selectedToolId, setSelectedToolId] = useState<number | null>(null);
+
   // Calculate aggregate metrics
-  const calculateAggregateData = () => {
-    const monthlyAggregates = {};
-    
+  const calculateAggregateData = (): AggregateMonthData[] => {
+    const monthlyAggregates: Record<string, AggregateMonthData> = {};
+
     // Initialize with all months
     deployedTools.selectedTools[0].monthlyIncidents.forEach(({ month }) => {
       monthlyAggregates[month] = {
@@ -122,7 +168,7 @@ const RiskRadar = () => {
         low: 0
       };
     });
-    
+
     // Aggregate by risk level
     deployedTools.selectedTools.forEach(tool => {
       tool.monthlyIncidents.forEach(({ month, incidents }) => {
@@ -140,12 +186,12 @@ const RiskRadar = () => {
         }
       });
     });
-    
+
     return Object.values(monthlyAggregates);
   };
 
   const aggregateData = calculateAggregateData();
-  
+
   // Calculate month-over-month change for the latest month
   const latestMonthChange = (() => {
     const lastMonth = aggregateData[aggregateData.length - 1];
@@ -157,8 +203,8 @@ const RiskRadar = () => {
     };
   })();
 
-  // Rest of the helper functions remain the same
-  const getRiskLevelColor = (level) => {
+  // Helper functions
+  const getRiskLevelColor = (level: string): string => {
     switch (level.toLowerCase()) {
       case 'high':
         return 'bg-red-100 text-red-800';
@@ -171,7 +217,7 @@ const RiskRadar = () => {
     }
   };
 
-  const getMitigationStatusIcon = (status) => {
+  const getMitigationStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case 'resolved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
@@ -184,7 +230,7 @@ const RiskRadar = () => {
     }
   };
 
-  const riskDistributionData = [
+  const riskDistributionData: RiskDistributionItem[] = [
     { name: 'High Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'High').length, color: '#EF4444' },
     { name: 'Medium Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'Medium').length, color: '#F59E0B' },
     { name: 'Low Risk', value: deployedTools.selectedTools.filter(t => t.riskLevel === 'Low').length, color: '#10B981' }
@@ -214,7 +260,7 @@ const RiskRadar = () => {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({name, value}) => `${name}: ${value}`}
+                      label={({ name, value }) => `${name}: ${value}`}
                     >
                       {riskDistributionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -253,27 +299,27 @@ const RiskRadar = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="high" 
+                    <Line
+                      type="monotone"
+                      dataKey="high"
                       name="High Risk Incidents"
-                      stroke="#EF4444" 
+                      stroke="#EF4444"
                       strokeWidth={2}
                       dot={{ r: 4 }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="medium" 
+                    <Line
+                      type="monotone"
+                      dataKey="medium"
                       name="Medium Risk Incidents"
-                      stroke="#F59E0B" 
+                      stroke="#F59E0B"
                       strokeWidth={2}
                       dot={{ r: 4 }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="low" 
+                    <Line
+                      type="monotone"
+                      dataKey="low"
                       name="Low Risk Incidents"
-                      stroke="#10B981" 
+                      stroke="#10B981"
                       strokeWidth={2}
                       dot={{ r: 4 }}
                     />
@@ -292,11 +338,10 @@ const RiskRadar = () => {
               <button
                 key={tool.id}
                 onClick={() => setSelectedToolId(selectedToolId === tool.id ? null : tool.id)}
-                className={`p-3 rounded-lg border transition-colors ${
-                  selectedToolId === tool.id 
-                    ? 'border-blue-500 bg-blue-50' 
+                className={`p-3 rounded-lg border transition-colors ${selectedToolId === tool.id
+                    ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-blue-300'
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">{tool.name}</span>
